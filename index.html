@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V8</title>
+    <title>HyperGrok Terminal V9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -22,22 +22,30 @@
         .screen { display: none; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
         
-        /* --- ЭКРАН 1: ВЫБОР АККАУНТА --- */
-        #screen-select { justify-content: center; align-items: center; text-align: center; }
-        .select-logo { width: 64px; height: 64px; background: white; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 40px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(255,255,255,0.1); }
-        .select-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
-        .select-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+        /* --- ЭКРАН 1: НАСТРОЙКА --- */
+        #screen-setup { justify-content: center; align-items: center; text-align: center; }
+        .setup-logo { width: 64px; height: 64px; background: white; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 40px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(255,255,255,0.1); }
+        .setup-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
+        .setup-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
         
-        .account-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
-        .account-card { 
-            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; 
-            display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.2s;
+        .setup-card { width: 100%; max-width: 350px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; text-align: left; }
+        
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .input-field { 
+            width: 100%; background: #0d0e12; border: 1px solid var(--border-color); 
+            color: white; padding: 12px; border-radius: 8px; font-size: 16px; font-family: monospace;
+            outline: none; transition: border 0.3s;
         }
-        .account-card:hover, .account-card:active { border-color: var(--accent-green); transform: scale(1.02); }
-        .account-icon { width: 40px; height: 40px; border-radius: 50%; background: #2a2d36; display: flex; justify-content: center; align-items: center; font-size: 20px; }
-        .account-info { text-align: left; flex: 1; }
-        .account-name { font-weight: bold; font-size: 14px; }
-        .account-bal { color: var(--accent-green); font-size: 12px; margin-top: 2px; }
+        .input-field:focus { border-color: var(--accent-green); }
+        .input-field[readonly] { color: var(--text-muted); font-size: 13px; }
+        
+        .btn-connect { 
+            width: 100%; background: var(--accent-green); color: black; border: none; 
+            padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; 
+            cursor: pointer; margin-top: 10px; transition: opacity 0.2s;
+        }
+        .btn-connect:active { opacity: 0.8; }
 
         /* --- ЭКРАН 2: ТЕРМИНАЛ ЗАГРУЗКИ --- */
         #screen-boot { justify-content: flex-end; padding: 20px; padding-bottom: 50px; }
@@ -111,42 +119,30 @@
 </head>
 <body>
 
-    <!-- ЭКРАН 1: ВЫБОР АККАУНТА -->
-    <div id="screen-select" class="screen active">
-        <div class="select-logo">G</div>
-        <div class="select-title">Connect Account</div>
-        <div class="select-subtitle">Select a wallet to start trading</div>
+    <!-- ЭКРАН 1: НАСТРОЙКА И ВВОД ДЕПОЗИТА -->
+    <div id="screen-setup" class="screen active">
+        <div class="setup-logo">G</div>
+        <div class="setup-title">Connect Wallet</div>
+        <div class="setup-subtitle">Configure your AI trading session</div>
 
-        <div class="account-list">
-            <div class="account-card" onclick="startBootSequence('Main Wallet')">
-                <div class="account-icon">🐋</div>
-                <div class="account-info">
-                    <div class="account-name">Main Wallet</div>
-                    <div class="account-bal">$12,450.00</div>
-                </div>
+        <div class="setup-card">
+            <div class="input-group">
+                <label class="input-label">Your Wallet Address</label>
+                <input type="text" class="input-field" id="wallet-address" readonly>
             </div>
-            <div class="account-card" onclick="startBootSequence('Degen Wallet')">
-                <div class="account-icon">🦍</div>
-                <div class="account-info">
-                    <div class="account-name">Degen Wallet</div>
-                    <div class="account-bal">$110.00</div>
-                </div>
+            
+            <div class="input-group">
+                <label class="input-label">Starting Balance ($)</label>
+                <input type="number" class="input-field" id="start-balance-input" value="110" min="10" step="10">
             </div>
-            <div class="account-card" onclick="startBootSequence('Burner Wallet')">
-                <div class="account-icon">🔥</div>
-                <div class="account-info">
-                    <div class="account-name">Burner Wallet</div>
-                    <div class="account-bal">$15.00</div>
-                </div>
-            </div>
+
+            <button class="btn-connect" onclick="startBootSequence()">Connect & Start</button>
         </div>
     </div>
 
     <!-- ЭКРАН 2: ТЕРМИНАЛ ЗАГРУЗКИ -->
     <div id="screen-boot" class="screen">
-        <div class="boot-terminal" id="boot-log">
-            <!-- Сюда будут добавляться строки -->
-        </div>
+        <div class="boot-terminal" id="boot-log"></div>
         <div class="progress-bar"><div class="progress-fill" id="boot-progress"></div></div>
     </div>
 
@@ -156,8 +152,8 @@
             <div class="logo">G</div>
             <div class="header-text">
                 <h1>Grok Bot ✦ HyperGrok</h1>
-                <!-- Исправлено: отдельный span для имени кошелька, чтобы не ломать target-text -->
-                <p><span id="wallet-name">Wallet</span> ➔ <span id="target-text">$100.00 / $1,000</span> in 6 days.</p>
+                <!-- Убрали "in 6 days", добавили адрес кошелька -->
+                <p><span id="header-wallet">0x...0000</span> ➔ <span id="target-text">$110.00 / $1,100</span></p>
             </div>
         </div>
 
@@ -171,13 +167,13 @@
                 <div class="col">
                     <div class="card rule-box">
                         <div class="card-title">The Only Rule</div>
-                        <div class="rule-text">Stop at $1,000.</div>
+                        <div class="rule-text" id="rule-target">Stop at $1,100.</div>
                         <div class="rule-sub">Rule saved. Let's go to work.</div>
                     </div>
                     <div class="card">
                         <div class="card-title">Grok = Me</div>
                         <div class="chat-box" id="chat-box">
-                            <div class="chat-msg"><span>Grok:</span> Rule saved. $900 to go. Going to work.</div>
+                            <div class="chat-msg"><span>Grok:</span> Rule saved. Going to work.</div>
                         </div>
                     </div>
                 </div>
@@ -232,33 +228,87 @@
         const tg = window.Telegram.WebApp;
         if (tg) { tg.expand(); tg.setHeaderColor('#0d0e12'); }
 
-        // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ ---
-        const screenSelect = document.getElementById('screen-select');
+        // --- ГЕНЕРАЦИЯ АДРЕСА КОШЕЛЬКА ---
+        function generateWalletAddress() {
+            const chars = '0123456789abcdef';
+            let addr = '0x';
+            for (let i = 0; i < 4; i++) addr += chars[Math.floor(Math.random() * 16)];
+            addr += '...';
+            for (let i = 0; i < 4; i++) addr += chars[Math.floor(Math.random() * 16)];
+            return addr;
+        }
+
+        // При загрузке страницы генерируем адрес
+        const walletAddress = generateWalletAddress();
+        document.getElementById('wallet-address').value = walletAddress;
+
+        // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ ---
+        let startBalance = 110.00;
+        let targetBalance = 1100.00;
+        let currentBalance = startBalance;
+        let isRunning = true;
+        let tradeCount = 0;
+        let winCount = 0;
+        let bestTrade = 0;
+        let worstTrade = 0;
+        let tradeInterval;
+        let balanceHistory = []; 
+        let isCurrentWin = true; 
+
+        const screenSetup = document.getElementById('screen-setup');
         const screenBoot = document.getElementById('screen-boot');
         const screenDashboard = document.getElementById('screen-dashboard');
         const bootLog = document.getElementById('boot-log');
         const bootProgress = document.getElementById('boot-progress');
 
+        const popupEl = document.getElementById('popup');
+        const chatBox = document.getElementById('chat-box');
+        const controlBtn = document.getElementById('control-btn');
+        const canvas = document.getElementById('myChart');
+        const ctx = canvas.getContext('2d');
+
+        const tokens = ['WIF', 'BONK', 'POPCAT', 'MEW', 'JUP', 'RAY', 'JTO', 'PYTH', 'HYPE', 'ETH', 'SOL', 'BTC', 'BRICK', 'DEEP', 'GARY', 'CAT'];
+
+        // --- ЛОГИКА ЗАГРУЗКИ ---
         const bootMessages = [
+            { text: `> Target Wallet: ${walletAddress}`, time: 400 },
             { text: "> Initializing Grok Core v3.1.4...", time: 400 },
-            { text: "> Loading neural weights...", time: 600 },
+            { text: "> Loading neural weights...", time: 500 },
             { text: "> Cloning GitHub repos...", time: 500 },
             { text: "> Repo: GMGN-AI/smart-money-bot [OK]", time: 300 },
             { text: "> Repo: TauricResearch/TradingAgents [OK]", time: 300 },
-            { text: "> Repo: 0xsyncroot/opentrade [OK]", time: 300 },
-            { text: "> Connecting to GMGN API...", time: 800 },
-            { text: "> Authenticating wallet (Read-Only)...", time: 600 },
+            { text: "> Connecting to GMGN API...", time: 600 },
+            { text: "> Authenticating wallet (Read-Only)...", time: 500 },
             { text: "> Linking TradingView Lightweight Charts...", time: 500 },
-            { text: "> Analyzing market conditions...", time: 700 },
             { text: "> SYSTEM READY. STARTING TRADING SESSION.", time: 500 }
         ];
 
-        async function startBootSequence(walletName) {
-            // Меняем имя кошелька в дашборде (теперь безопасно)
-            document.getElementById('wallet-name').textContent = walletName;
+        async function startBootSequence() {
+            // Получаем введенный баланс
+            const inputVal = parseFloat(document.getElementById('start-balance-input').value);
+            if (!inputVal || inputVal < 10) {
+                alert("Minimum starting balance is $10");
+                return;
+            }
+
+            startBalance = inputVal;
+            currentBalance = startBalance;
+            targetBalance = startBalance * 10; // Цель х10
+
+            // Настраиваем шапку
+            document.getElementById('header-wallet').textContent = walletAddress;
+            document.getElementById('target-text').textContent = `$${startBalance.toFixed(2)} / $${targetBalance.toFixed(0)}`;
+            document.getElementById('rule-target').textContent = `Stop at $${targetBalance.toFixed(0)}.`;
+
+            // Стартовые данные для графика (чтобы он не был пустым)
+            balanceHistory = [];
+            const now = Date.now();
+            for(let i=0; i<6; i++) {
+                balanceHistory.push({ value: startBalance, time: now - (6-i)*10000 });
+            }
 
             // Переключаем экран
-            screenSelect.classList.remove('active');
+            screenSetup.classList.remove('active');
             screenBoot.classList.add('active');
 
             let totalTime = bootMessages.reduce((acc, msg) => acc + msg.time, 0);
@@ -286,7 +336,6 @@
                     screenBoot.classList.remove('active');
                     screenDashboard.classList.add('active');
                     
-                    // Инициализируем график ТОЛЬКО когда экран уже виден
                     setTimeout(() => {
                         drawChart();
                         simulateTrade();
@@ -297,33 +346,7 @@
             }
         }
 
-        // --- ОСНОВНАЯ ЛОГИКА ТОРГОВЛИ ---
-        let currentBalance = 100.00;
-        let isRunning = true;
-        let tradeCount = 0;
-        let winCount = 0;
-        let bestTrade = 0;
-        let worstTrade = 0;
-        let tradeInterval;
-
-        let balanceHistory = [
-            { value: 100, time: Date.now() - 50000 },
-            { value: 102, time: Date.now() - 40000 },
-            { value: 98, time: Date.now() - 30000 },
-            { value: 105, time: Date.now() - 20000 },
-            { value: 101, time: Date.now() - 10000 },
-            { value: 100, time: Date.now() }
-        ]; 
-        let isCurrentWin = true; 
-
-        const popupEl = document.getElementById('popup');
-        const chatBox = document.getElementById('chat-box');
-        const controlBtn = document.getElementById('control-btn');
-        const canvas = document.getElementById('myChart');
-        const ctx = canvas.getContext('2d');
-
-        const tokens = ['WIF', 'BONK', 'POPCAT', 'MEW', 'JUP', 'RAY', 'JTO', 'PYTH', 'HYPE', 'ETH', 'SOL', 'BTC', 'BRICK', 'DEEP', 'GARY', 'CAT'];
-
+        // --- ОТРИСОВКА ГРАФИКА ---
         function drawChart() {
             const parent = canvas.parentElement;
             const rect = parent.getBoundingClientRect();
@@ -348,8 +371,8 @@
             ctx.clearRect(0, 0, w, h);
 
             const values = balanceHistory.map(d => d.value);
-            const maxVal = Math.max(...values, 110); 
-            const minVal = Math.min(...values, 90);
+            const maxVal = Math.max(...values, startBalance * 1.1); 
+            const minVal = Math.min(...values, startBalance * 0.9);
             const range = maxVal - minVal || 1; 
 
             const color = isCurrentWin ? '#00ff88' : '#ff4444';
@@ -377,7 +400,7 @@
                 ctx.fillText('$' + val.toFixed(0), w, y);
             }
 
-            const baseY = paddingTop + chartH - ((100 - minVal) / range) * chartH;
+            const baseY = paddingTop + chartH - ((startBalance - minVal) / range) * chartH;
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx.setLineDash([5, 5]);
@@ -467,7 +490,7 @@
             if (!isRunning || !screenDashboard.classList.contains('active')) return;
             for (let i = 1; i <= 3; i++) {
                 const isPos = Math.random() > 0.4;
-                const val = (Math.random() * 25).toFixed(2);
+                const val = (Math.random() * (startBalance * 0.2)).toFixed(2); // Прибыль зависит от депозита
                 const pnlEl = document.getElementById(`pnl-${i}`);
                 pnlEl.textContent = `${isPos ? '+' : '-'}$${val}`;
                 pnlEl.className = isPos ? 'pnl-pos' : 'pnl-neg';
@@ -528,7 +551,8 @@
             const isWin = Math.random() > 0.25; 
             isCurrentWin = isWin; 
 
-            let change = parseFloat((Math.random() * 15 + 2).toFixed(2));
+            // Профит зависит от стартового баланса (около 1-15%)
+            let change = parseFloat((Math.random() * (startBalance * 0.15) + (startBalance * 0.02)).toFixed(2));
             if (!isWin) change = -change;
 
             if (change > bestTrade) bestTrade = change;
@@ -560,9 +584,9 @@
             popupEl.classList.add('show');
             setTimeout(() => popupEl.classList.remove('show'), 1200);
 
-            document.getElementById('target-text').textContent = `$${currentBalance.toFixed(2)} / $1,000`;
+            document.getElementById('target-text').textContent = `$${currentBalance.toFixed(2)} / $${targetBalance.toFixed(0)}`;
 
-            if (currentBalance >= 1000) {
+            if (currentBalance >= targetBalance) {
                 toggleBot();
                 showRecap();
             }
@@ -592,8 +616,8 @@
         }
 
         function showRecap() {
-            const profit = currentBalance - 100;
-            const multiplier = (currentBalance / 100).toFixed(2);
+            const profit = currentBalance - startBalance;
+            const multiplier = (currentBalance / startBalance).toFixed(2);
             const winrate = tradeCount > 0 ? ((winCount / tradeCount) * 100).toFixed(0) : 0;
 
             document.getElementById('recap-profit').textContent = `${profit > 0 ? '+' : ''}$${profit.toFixed(2)}`;
