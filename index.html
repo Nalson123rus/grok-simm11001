@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V14</title>
-    <!-- Подключаем шрифт Inter, как в Phantom -->
+    <title>HyperGrok Terminal V15</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -17,7 +16,6 @@
             --card-bg: #16181d;
             --border-color: #2a2d36;
             
-            /* Phantom Colors */
             --phantom-bg: #18181b;
             --phantom-card: #27272a;
             --phantom-purple: #ab9ff2;
@@ -26,11 +24,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; font-size: 13px; height: 100vh; }
         
-        /* Экраны */
         .screen { display: none; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
         
-        /* --- ЭКРАН 1: НАСТРОЙКА --- */
         #screen-setup { justify-content: center; align-items: center; text-align: center; }
         .setup-logo { width: 64px; height: 64px; background: white; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 40px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(255,255,255,0.1); }
         .setup-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
@@ -40,22 +36,13 @@
         
         .input-group { margin-bottom: 16px; }
         .input-label { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
-        .input-field { 
-            width: 100%; background: #0d0e12; border: 1px solid var(--border-color); 
-            color: white; padding: 12px; border-radius: 8px; font-size: 16px; font-family: monospace;
-            outline: none; transition: border 0.3s;
-        }
+        .input-field { width: 100%; background: #0d0e12; border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 8px; font-size: 16px; font-family: monospace; outline: none; transition: border 0.3s; }
         .input-field:focus { border-color: var(--accent-green); }
         .input-field[readonly] { color: var(--text-muted); font-size: 13px; }
         
-        .btn-connect { 
-            width: 100%; background: var(--accent-green); color: black; border: none; 
-            padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; 
-            cursor: pointer; margin-top: 10px; transition: opacity 0.2s;
-        }
+        .btn-connect { width: 100%; background: var(--accent-green); color: black; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; transition: opacity 0.2s; }
         .btn-connect:active { opacity: 0.8; }
 
-        /* --- ЭКРАН 2: ТЕРМИНАЛ ЗАГРУЗКИ --- */
         #screen-boot { justify-content: flex-end; padding: 20px; padding-bottom: 50px; }
         .boot-terminal { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6; color: var(--accent-green); display: flex; flex-direction: column; gap: 8px; }
         .boot-line { opacity: 0; animation: fadeIn 0.1s forwards; }
@@ -65,7 +52,6 @@
         .progress-bar { width: 100%; height: 4px; background: #222; border-radius: 2px; margin-top: 20px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--accent-green); transition: width 0.3s; box-shadow: 0 0 10px var(--accent-green); }
 
-        /* --- ЭКРАН 3: ДАШБОРД --- */
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 20px; }
@@ -115,7 +101,6 @@
         .btn-stop { background: rgba(255, 68, 68, 0.1); color: var(--accent-red); border-color: var(--accent-red); }
         .btn-start { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: var(--accent-green); }
 
-        /* Модальное окно */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
         .modal.show { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
@@ -127,25 +112,12 @@
         .btn-close { background: var(--card-bg); color: white; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
         .btn-sync { background: var(--phantom-purple); color: black; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
 
-        /* --- ЭКРАН 4: PHANTOM WALLET (100% СТИЛЬ) --- */
-        #screen-phantom { 
-            background-color: var(--phantom-bg); 
-            padding: 0; 
-            font-family: 'Inter', sans-serif; 
-            justify-content: flex-start; 
-            height: 100vh;
-            overflow-y: auto;
-        }
+        #screen-phantom { background-color: var(--phantom-bg); padding: 0; font-family: 'Inter', sans-serif; justify-content: flex-start; height: 100vh; overflow-y: auto; }
         .phantom-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
         .phantom-back { color: var(--phantom-text); font-size: 14px; cursor: pointer; font-weight: 600; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
         
         .phantom-account { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 24px; }
-        .phantom-avatar { 
-            width: 64px; height: 64px; border-radius: 50%; 
-            background: linear-gradient(135deg, #FF61D2 0%, #FFB03A 50%, #00E5FF 100%);
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
+        .phantom-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #FF61D2 0%, #FFB03A 50%, #00E5FF 100%); margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .phantom-name { font-size: 16px; font-weight: 600; color: var(--phantom-text); }
         .phantom-addr { color: var(--phantom-text); opacity: 0.5; font-size: 13px; margin-top: 4px; font-family: monospace; }
         
@@ -155,21 +127,15 @@
         
         .phantom-actions { display: flex; gap: 16px; padding: 0 20px; margin-bottom: 30px; }
         .phantom-btn-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .phantom-btn-square { 
-            width: 56px; height: 56px; border-radius: 16px; background: var(--phantom-card); 
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-            transition: background 0.2s;
-        }
+        .phantom-btn-square { width: 56px; height: 56px; border-radius: 16px; background: var(--phantom-card); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s; }
         .phantom-btn-square:active { background: #3f3f46; }
         .phantom-btn-square svg { width: 24px; height: 24px; fill: var(--phantom-purple); }
         .phantom-btn-label { color: var(--phantom-text); font-size: 12px; font-weight: 500; }
 
-        /* Список токенов */
         .phantom-tokens { background: var(--phantom-bg); padding: 0 20px; }
         .phantom-token-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .phantom-token-left { display: flex; align-items: center; gap: 14px; }
         
-        /* Иконки теперь без фона, так как SVG сам содержит круг */
         .phantom-token-icon { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
         .phantom-token-icon svg { width: 100%; height: 100%; }
         
@@ -179,12 +145,7 @@
         .phantom-token-amount { font-size: 15px; font-weight: 600; color: var(--phantom-text); }
         .phantom-token-usd { font-size: 12px; color: var(--phantom-text); opacity: 0.5; margin-top: 2px; }
 
-        /* Нижнее меню Phantom */
-        .phantom-nav { 
-            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(24, 24, 27, 0.95); 
-            backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex; justify-content: space-around; padding: 12px 0; padding-bottom: max(12px, env(safe-area-inset-bottom));
-        }
+        .phantom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; padding: 12px 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
         .phantom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--phantom-text); opacity: 0.4; }
         .phantom-nav-item.active { opacity: 1; color: var(--phantom-purple); }
         .phantom-nav-icon { width: 24px; height: 24px; fill: currentColor; }
@@ -193,7 +154,6 @@
 </head>
 <body>
 
-    <!-- ЭКРАН 1: НАСТРОЙКА -->
     <div id="screen-setup" class="screen active">
         <div class="setup-logo">G</div>
         <div class="setup-title">Connect Wallet</div>
@@ -214,13 +174,11 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 2: ТЕРМИНАЛ ЗАГРУЗКИ -->
     <div id="screen-boot" class="screen">
         <div class="boot-terminal" id="boot-log"></div>
         <div class="progress-bar"><div class="progress-fill" id="boot-progress"></div></div>
     </div>
 
-    <!-- ЭКРАН 3: ДАШБОРД -->
     <div id="screen-dashboard" class="screen">
         <div class="header">
             <div class="header-left">
@@ -288,7 +246,6 @@
         </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО ИТОГОВ -->
     <div class="modal" id="recap-modal">
         <div class="modal-content">
             <h2>Session Recap</h2>
@@ -314,7 +271,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 4: PHANTOM WALLET -->
     <div id="screen-phantom" class="screen">
         <div class="phantom-top-bar">
             <div class="phantom-back" onclick="backToDashboard()">
@@ -337,27 +293,19 @@
 
         <div class="phantom-actions">
             <div class="phantom-btn-wrap">
-                <div class="phantom-btn-square">
-                    <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
+                <div class="phantom-btn-square"><svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="phantom-btn-label">Receive</div>
             </div>
             <div class="phantom-btn-wrap">
-                <div class="phantom-btn-square">
-                    <svg viewBox="0 0 24 24"><path d="M12 20V8m0 0l4 4m-4-4l-4 4M4 4h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
+                <div class="phantom-btn-square"><svg viewBox="0 0 24 24"><path d="M12 20V8m0 0l4 4m-4-4l-4 4M4 4h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="phantom-btn-label">Send</div>
             </div>
             <div class="phantom-btn-wrap">
-                <div class="phantom-btn-square">
-                    <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
+                <div class="phantom-btn-square"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="phantom-btn-label">Swap</div>
             </div>
             <div class="phantom-btn-wrap">
-                <div class="phantom-btn-square">
-                    <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
+                <div class="phantom-btn-square"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="phantom-btn-label">Buy</div>
             </div>
         </div>
@@ -365,11 +313,17 @@
         <div class="phantom-tokens">
             <div class="phantom-token-row">
                 <div class="phantom-token-left">
-                    <!-- Идеальный официальный логотип USDT -->
+                    <!-- РУЧНАЯ ОТРИСОВКА USDT (ИДЕАЛЬНЫЕ ПРОПОРЦИИ) -->
                     <div class="phantom-token-icon">
-                        <svg viewBox="0 0 2000 2000" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="1000" cy="1000" r="1000" fill="#26A17B"/>
-                            <path fill="#FFF" d="M1119.52 866.71v-142.1h360.37V533.95H520.1v190.66h360.39v142.1c-292.9 13.43-513.15 71.46-513.15 141.33 0 69.87 220.25 127.9 513.15 141.33v505.56h239.03v-505.56c292.58-13.43 512.49-71.4 512.49-141.33 0-69.93-219.9-127.9-512.49-141.33zm0 227.53v-.14c-4.03.28-26.16 1.57-69.06 1.57-36.13 0-63.33-1.16-71.79-1.57v.14c-250.21-11.08-436.82-52.79-436.82-102.9 0-50.11 186.61-91.82 436.82-102.9v183.36c8.61.56 36.36 2.1 72.75 2.1 42.05 0 63.33-1.77 68.1-2.1V1094.24c249.64 11.14 435.7 52.75 435.7 102.8 0 50.05-186.06 91.66-435.7 102.8z"/>
+                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Зеленый круг -->
+                            <circle cx="16" cy="16" r="16" fill="#26A17B"/>
+                            <!-- Нижняя ножка буквы T -->
+                            <rect x="14" y="11" width="4" height="13" fill="white"/>
+                            <!-- Овал (проходит над ножкой) -->
+                            <ellipse cx="16" cy="15.5" rx="7.5" ry="2.5" stroke="white" stroke-width="1.5" fill="none"/>
+                            <!-- Верхняя перекладина буквы T (проходит над овалом) -->
+                            <rect x="8" y="8" width="16" height="3.5" fill="white"/>
                         </svg>
                     </div>
                     <div>
@@ -385,7 +339,6 @@
             
             <div class="phantom-token-row">
                 <div class="phantom-token-left">
-                    <!-- Официальный логотип Solana (SOL) -->
                     <div class="phantom-token-icon">
                         <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="16" cy="16" r="16" fill="#141414"/>
