@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V9</title>
+    <title>HyperGrok Terminal V10</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -14,6 +14,12 @@
             --accent-red: #ff4444;
             --card-bg: #16181d;
             --border-color: #2a2d36;
+            
+            /* Phantom Colors */
+            --phantom-bg: #18181b;
+            --phantom-card: #27272a;
+            --phantom-purple: #ab9ff2;
+            --phantom-text: #ffffff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; font-size: 13px; height: 100vh; }
@@ -49,10 +55,7 @@
 
         /* --- ЭКРАН 2: ТЕРМИНАЛ ЗАГРУЗКИ --- */
         #screen-boot { justify-content: flex-end; padding: 20px; padding-bottom: 50px; }
-        .boot-terminal { 
-            font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6;
-            color: var(--accent-green); display: flex; flex-direction: column; gap: 8px;
-        }
+        .boot-terminal { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6; color: var(--accent-green); display: flex; flex-direction: column; gap: 8px; }
         .boot-line { opacity: 0; animation: fadeIn 0.1s forwards; }
         .boot-line span { color: var(--text-muted); }
         @keyframes fadeIn { to { opacity: 1; } }
@@ -61,11 +64,15 @@
         .progress-fill { height: 100%; width: 0%; background: var(--accent-green); transition: width 0.3s; box-shadow: 0 0 10px var(--accent-green); }
 
         /* --- ЭКРАН 3: ДАШБОРД --- */
-        .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+        .header-left { display: flex; align-items: center; gap: 10px; }
         .logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 20px; }
         .header-text h1 { font-size: 16px; margin-bottom: 2px; }
         .header-text p { color: var(--text-muted); font-size: 11px; }
         .header-text span { color: var(--accent-green); font-weight: bold; }
+        
+        /* Phantom Icon */
+        .phantom-icon-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--phantom-card); display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #333; }
 
         .grid { display: flex; flex-direction: column; gap: 12px; }
         
@@ -107,6 +114,7 @@
         .btn-stop { background: rgba(255, 68, 68, 0.1); color: var(--accent-red); border-color: var(--accent-red); }
         .btn-start { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: var(--accent-green); }
 
+        /* Модальное окно */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
         .modal.show { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
@@ -114,12 +122,42 @@
         .modal-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .modal-stats div { background: #0d0e12; padding: 10px; border-radius: 8px; font-size: 11px; color: var(--text-muted); }
         .modal-stats span { display: block; font-size: 16px; color: var(--text-main); font-weight: bold; margin-top: 4px; }
-        .btn-close { background: var(--accent-green); color: black; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 14px; cursor: pointer; }
+        
+        .btn-close { background: var(--card-bg); color: white; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
+        .btn-sync { background: var(--phantom-purple); color: black; border: none; padding: 12px; border-radius: 8px; font-weight: bold; width: 100%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
+
+        /* --- ЭКРАН 4: PHANTOM WALLET --- */
+        #screen-phantom { background-color: var(--phantom-bg); padding: 20px; justify-content: flex-start; }
+        .phantom-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .phantom-back { color: var(--phantom-text); font-size: 14px; cursor: pointer; font-weight: bold; opacity: 0.8; }
+        .phantom-account { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+        .phantom-avatar { width: 60px; height: 60px; background: linear-gradient(135deg, #a463f2, #ab9ff2); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; margin-bottom: 10px; }
+        .phantom-name { font-size: 16px; font-weight: bold; color: var(--phantom-text); }
+        .phantom-addr { color: var(--phantom-text); opacity: 0.5; font-size: 12px; margin-top: 4px; font-family: monospace; }
+        
+        .phantom-balance-box { text-align: center; margin-bottom: 30px; }
+        .phantom-balance-label { color: var(--phantom-text); opacity: 0.5; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+        .phantom-balance-val { font-size: 42px; font-weight: bold; color: var(--phantom-text); letter-spacing: -1px; }
+        
+        .phantom-tokens { background: var(--phantom-card); border-radius: 16px; padding: 16px; }
+        .phantom-token-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .phantom-token-row:last-child { border-bottom: none; }
+        .phantom-token-left { display: flex; align-items: center; gap: 12px; }
+        .phantom-token-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; }
+        .phantom-token-name { font-size: 14px; font-weight: bold; color: var(--phantom-text); }
+        .phantom-token-ticker { font-size: 11px; color: var(--phantom-text); opacity: 0.5; }
+        .phantom-token-right { text-align: right; }
+        .phantom-token-amount { font-size: 14px; font-weight: bold; color: var(--phantom-text); }
+        .phantom-token-usd { font-size: 11px; color: var(--phantom-text); opacity: 0.5; margin-top: 2px; }
+        
+        .phantom-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .phantom-btn { flex: 1; background: var(--phantom-purple); color: black; border: none; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 14px; }
+        .phantom-btn-secondary { flex: 1; background: var(--phantom-card); color: var(--phantom-text); border: none; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН 1: НАСТРОЙКА И ВВОД ДЕПОЗИТА -->
+    <!-- ЭКРАН 1: НАСТРОЙКА -->
     <div id="screen-setup" class="screen active">
         <div class="setup-logo">G</div>
         <div class="setup-title">Connect Wallet</div>
@@ -146,14 +184,22 @@
         <div class="progress-bar"><div class="progress-fill" id="boot-progress"></div></div>
     </div>
 
-    <!-- ЭКРАН 3: ОСНОВНОЙ ДАШБОРД -->
+    <!-- ЭКРАН 3: ДАШБОРД -->
     <div id="screen-dashboard" class="screen">
         <div class="header">
-            <div class="logo">G</div>
-            <div class="header-text">
-                <h1>Grok Bot ✦ HyperGrok</h1>
-                <!-- Убрали "in 6 days", добавили адрес кошелька -->
-                <p><span id="header-wallet">0x...0000</span> ➔ <span id="target-text">$110.00 / $1,100</span></p>
+            <div class="header-left">
+                <div class="logo">G</div>
+                <div class="header-text">
+                    <h1>Grok Bot ✦ HyperGrok</h1>
+                    <p><span id="header-wallet">0x...0000</span> ➔ <span id="target-text">$110.00 / $1,100</span></p>
+                </div>
+            </div>
+            <!-- PHANTOM ICON -->
+            <div class="phantom-icon-btn" onclick="showPhantom()">
+                <svg width="20" height="20" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M64 128C99.3462 128 128 99.3462 128 64C128 28.6538 99.3462 0 64 0C28.6538 0 0 28.6538 0 64C0 99.3462 28.6538 128 64 128Z" fill="#AB9FF2"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M32.5 72.5C32.5 81.6127 39.8873 89 49 89C58.1127 89 65.5 81.6127 65.5 72.5C65.5 63.3873 58.1127 56 49 56C39.8873 56 32.5 63.3873 32.5 72.5ZM62.5 72.5C62.5 81.6127 69.8873 89 79 89C88.1127 89 95.5 81.6127 95.5 72.5C95.5 63.3873 88.1127 56 79 56C69.8873 56 62.5 63.3873 62.5 72.5Z" fill="white"/>
+                </svg>
             </div>
         </div>
 
@@ -202,14 +248,15 @@
         </div>
 
         <div class="bottom-nav">
-            <button class="btn btn-stop" id="control-btn" onclick="toggleBot()">⏸ Пауза</button>
-            <button class="btn btn-start" style="background:transparent; border:none; color:var(--text-muted); flex:0.5;" onclick="showRecap()">📊 Итоги</button>
+            <button class="btn btn-stop" id="control-btn" onclick="toggleBot()">⏸ Pause</button>
+            <button class="btn btn-start" style="background:transparent; border:none; color:var(--text-muted); flex:0.5;" onclick="showRecap()">📊 Recap</button>
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО ИТОГОВ -->
     <div class="modal" id="recap-modal">
         <div class="modal-content">
-            <h2>12h Session Recap</h2>
+            <h2>Session Recap</h2>
             <div style="font-size: 32px; font-weight: bold; color: var(--accent-green); margin-bottom: 10px;" id="recap-profit">+$0.00</div>
             <div style="color: var(--text-muted); margin-bottom: 20px;" id="recap-percent">0.00x return</div>
             
@@ -220,7 +267,71 @@
                 <div>Worst <span style="color: var(--accent-red);" id="recap-worst">$0</span></div>
             </div>
             
-            <button class="btn-close" onclick="closeRecap()">Продолжить торговлю</button>
+            <button class="btn-close" onclick="closeRecap()">Continue Trading</button>
+            
+            <!-- Кнопка синхронизации с Phantom -->
+            <button class="btn-sync" onclick="showPhantom()">
+                <svg width="16" height="16" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M64 128C99.3462 128 128 99.3462 128 64C128 28.6538 99.3462 0 64 0C28.6538 0 0 28.6538 0 64C0 99.3462 28.6538 128 64 128Z" fill="#18181b"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M32.5 72.5C32.5 81.6127 39.8873 89 49 89C58.1127 89 65.5 81.6127 65.5 72.5C65.5 63.3873 58.1127 56 49 56C39.8873 56 32.5 63.3873 32.5 72.5ZM62.5 72.5C62.5 81.6127 69.8873 89 79 89C88.1127 89 95.5 81.6127 95.5 72.5C95.5 63.3873 88.1127 56 79 56C69.8873 56 62.5 63.3873 62.5 72.5Z" fill="white"/>
+                </svg>
+                Sync to Phantom Wallet
+            </button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 4: PHANTOM WALLET -->
+    <div id="screen-phantom" class="screen">
+        <div class="phantom-header">
+            <div class="phantom-back" onclick="backToDashboard()">← Back</div>
+            <div style="color:var(--phantom-text); font-weight:bold;">Phantom</div>
+            <div style="width: 40px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="phantom-account">
+            <div class="phantom-avatar">👻</div>
+            <div class="phantom-name">Main Wallet</div>
+            <div class="phantom-addr" id="phantom-addr">0x...0000</div>
+        </div>
+
+        <div class="phantom-balance-box">
+            <div class="phantom-balance-label">Total Balance</div>
+            <div class="phantom-balance-val" id="phantom-total-balance">$0.00</div>
+        </div>
+
+        <div class="phantom-tokens">
+            <div class="phantom-token-row">
+                <div class="phantom-token-left">
+                    <div class="phantom-token-icon" style="background: #26A17B; color: white;">₮</div>
+                    <div>
+                        <div class="phantom-token-name">Tether USD</div>
+                        <div class="phantom-token-ticker">USDT</div>
+                    </div>
+                </div>
+                <div class="phantom-token-right">
+                    <div class="phantom-token-amount" id="phantom-usdt-amount">0.00</div>
+                    <div class="phantom-token-usd" id="phantom-usdt-usd">$0.00</div>
+                </div>
+            </div>
+            
+            <div class="phantom-token-row">
+                <div class="phantom-token-left">
+                    <div class="phantom-token-icon" style="background: linear-gradient(135deg, #9945FF, #14F195); color: white;">◎</div>
+                    <div>
+                        <div class="phantom-token-name">Solana</div>
+                        <div class="phantom-token-ticker">SOL</div>
+                    </div>
+                </div>
+                <div class="phantom-token-right">
+                    <div class="phantom-token-amount">1.25</div>
+                    <div class="phantom-token-usd">$185.50</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="phantom-actions">
+            <button class="phantom-btn">Receive</button>
+            <button class="phantom-btn-secondary">Send</button>
         </div>
     </div>
 
@@ -228,7 +339,7 @@
         const tg = window.Telegram.WebApp;
         if (tg) { tg.expand(); tg.setHeaderColor('#0d0e12'); }
 
-        // --- ГЕНЕРАЦИЯ АДРЕСА КОШЕЛЬКА ---
+        // --- ГЕНЕРАЦИЯ АДРЕСА ---
         function generateWalletAddress() {
             const chars = '0123456789abcdef';
             let addr = '0x';
@@ -238,11 +349,11 @@
             return addr;
         }
 
-        // При загрузке страницы генерируем адрес
         const walletAddress = generateWalletAddress();
         document.getElementById('wallet-address').value = walletAddress;
+        document.getElementById('phantom-addr').textContent = walletAddress;
 
-        // --- ПЕРЕМЕННЫЕ СОСТОЯНИЯ ---
+        // --- ПЕРЕМЕННЫЕ ---
         let startBalance = 110.00;
         let targetBalance = 1100.00;
         let currentBalance = startBalance;
@@ -258,6 +369,7 @@
         const screenSetup = document.getElementById('screen-setup');
         const screenBoot = document.getElementById('screen-boot');
         const screenDashboard = document.getElementById('screen-dashboard');
+        const screenPhantom = document.getElementById('screen-phantom');
         const bootLog = document.getElementById('boot-log');
         const bootProgress = document.getElementById('boot-progress');
 
@@ -284,7 +396,6 @@
         ];
 
         async function startBootSequence() {
-            // Получаем введенный баланс
             const inputVal = parseFloat(document.getElementById('start-balance-input').value);
             if (!inputVal || inputVal < 10) {
                 alert("Minimum starting balance is $10");
@@ -293,21 +404,18 @@
 
             startBalance = inputVal;
             currentBalance = startBalance;
-            targetBalance = startBalance * 10; // Цель х10
+            targetBalance = startBalance * 10;
 
-            // Настраиваем шапку
             document.getElementById('header-wallet').textContent = walletAddress;
             document.getElementById('target-text').textContent = `$${startBalance.toFixed(2)} / $${targetBalance.toFixed(0)}`;
             document.getElementById('rule-target').textContent = `Stop at $${targetBalance.toFixed(0)}.`;
 
-            // Стартовые данные для графика (чтобы он не был пустым)
             balanceHistory = [];
             const now = Date.now();
             for(let i=0; i<6; i++) {
                 balanceHistory.push({ value: startBalance, time: now - (6-i)*10000 });
             }
 
-            // Переключаем экран
             screenSetup.classList.remove('active');
             screenBoot.classList.add('active');
 
@@ -316,7 +424,6 @@
 
             for (let i = 0; i < bootMessages.length; i++) {
                 const msg = bootMessages[i];
-                
                 await new Promise(r => setTimeout(r, msg.time));
                 currentTime += msg.time;
 
@@ -327,12 +434,10 @@
                 line.className = 'boot-line';
                 line.innerHTML = `<span>${msg.text}</span>`;
                 bootLog.appendChild(line);
-                
                 screenBoot.scrollTop = screenBoot.scrollHeight;
 
                 if (i === bootMessages.length - 1) {
                     await new Promise(r => setTimeout(r, 600));
-                    
                     screenBoot.classList.remove('active');
                     screenDashboard.classList.add('active');
                     
@@ -490,7 +595,7 @@
             if (!isRunning || !screenDashboard.classList.contains('active')) return;
             for (let i = 1; i <= 3; i++) {
                 const isPos = Math.random() > 0.4;
-                const val = (Math.random() * (startBalance * 0.2)).toFixed(2); // Прибыль зависит от депозита
+                const val = (Math.random() * (startBalance * 0.2)).toFixed(2); 
                 const pnlEl = document.getElementById(`pnl-${i}`);
                 pnlEl.textContent = `${isPos ? '+' : '-'}$${val}`;
                 pnlEl.className = isPos ? 'pnl-pos' : 'pnl-neg';
@@ -531,11 +636,11 @@
         function toggleBot() {
             isRunning = !isRunning;
             if (isRunning) {
-                controlBtn.textContent = '⏸ Пауза';
+                controlBtn.textContent = '⏸ Pause';
                 controlBtn.className = 'btn btn-stop';
                 startTrading();
             } else {
-                controlBtn.textContent = '▶️ Старт';
+                controlBtn.textContent = '▶️ Start';
                 controlBtn.className = 'btn btn-start';
                 clearInterval(tradeInterval);
             }
@@ -551,7 +656,6 @@
             const isWin = Math.random() > 0.25; 
             isCurrentWin = isWin; 
 
-            // Профит зависит от стартового баланса (около 1-15%)
             let change = parseFloat((Math.random() * (startBalance * 0.15) + (startBalance * 0.02)).toFixed(2));
             if (!isWin) change = -change;
 
@@ -634,6 +738,38 @@
         function closeRecap() {
             document.getElementById('recap-modal').classList.remove('show');
             if(!isRunning) toggleBot();
+        }
+
+        // --- ЛОГИКА PHANTOM ---
+        function showPhantom() {
+            // Закрываем модалку, если открыта
+            document.getElementById('recap-modal').classList.remove('show');
+            
+            // Останавливаем бота
+            if(isRunning) toggleBot();
+
+            // Синхронизируем баланс
+            const usdtVal = currentBalance.toFixed(2);
+            document.getElementById('phantom-total-balance').textContent = `$${usdtVal}`;
+            document.getElementById('phantom-usdt-amount').textContent = usdtVal;
+            document.getElementById('phantom-usdt-usd').textContent = `$${usdtVal}`;
+
+            // Переключаем экран
+            screenDashboard.classList.remove('active');
+            screenPhantom.classList.add('active');
+
+            // Меняем цвет шапки телеграма под Phantom
+            if (tg) tg.setHeaderColor('#18181b');
+            if (tg) tg.setBackgroundColor('#18181b');
+        }
+
+        function backToDashboard() {
+            screenPhantom.classList.remove('active');
+            screenDashboard.classList.add('active');
+
+            // Возвращаем цвета дашборда
+            if (tg) tg.setHeaderColor('#0d0e12');
+            if (tg) tg.setBackgroundColor('#0d0e12');
         }
 
     </script>
