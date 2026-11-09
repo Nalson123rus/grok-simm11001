@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V4</title>
+    <title>HyperGrok Terminal V5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -15,7 +15,7 @@
             --card-bg: #16181d;
             --border-color: #2a2d36;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; font-size: 13px; }
         
         .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
@@ -26,21 +26,20 @@
 
         .grid { display: flex; flex-direction: column; gap: 12px; }
         
-        /* Контейнер для кастомного графика */
         .chart-box { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
             border-radius: 12px; 
-            height: 220px; /* Сделали чуть выше для цифр */
+            height: 220px; 
             position: relative; 
             overflow: hidden; 
             width: 100%;
         }
         #myChart { width: 100%; height: 100%; display: block; position: absolute; top: 0; left: 0; }
         
-        .popup-trade { position: absolute; top: 50%; left: 40%; transform: translate(-50%, -50%); background: rgba(0, 255, 136, 0.2); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; font-size: 12px; z-index: 10; pointer-events: none; backdrop-filter: blur(2px); }
+        .popup-trade { position: absolute; top: 40%; left: 30%; transform: translate(-50%, -50%); background: rgba(0, 255, 136, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; font-size: 12px; z-index: 10; pointer-events: none; backdrop-filter: blur(4px); box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
         .popup-trade.show { opacity: 1; }
-        .popup-trade.loss { background: rgba(255, 68, 68, 0.2); border-color: var(--accent-red); color: var(--accent-red); }
+        .popup-trade.loss { background: rgba(255, 68, 68, 0.15); border-color: var(--accent-red); color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 68, 68, 0.2); }
 
         .row { display: flex; gap: 12px; }
         .col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
@@ -88,7 +87,7 @@
     <div class="header">
         <div class="logo">G</div>
         <div class="header-text">
-            <h1>Grok Bot ✦ HyperGrok V4</h1>
+            <h1>Grok Bot ✦ HyperGrok V5</h1>
             <p>$100 ➔ <span id="target-text">$100.00 / $1,000</span> in 6 days.</p>
         </div>
     </div>
@@ -171,7 +170,6 @@
         let worstTrade = 0;
         let tradeInterval;
 
-        // Теперь храним не просто числа, а объекты { value, time }
         let balanceHistory = [
             { value: 100, time: Date.now() - 50000 },
             { value: 102, time: Date.now() - 40000 },
@@ -191,39 +189,45 @@
 
         const tokens = ['WIF', 'BONK', 'POPCAT', 'MEW', 'JUP', 'RAY', 'JTO', 'PYTH', 'HYPE', 'ETH', 'SOL', 'BTC', 'BRICK', 'DEEP', 'GARY', 'CAT'];
 
-        // --- ОТРИСОВКА ГРАФИКА ---
+        // --- ОТРИСОВКА ГРАФИКА (High-DPI + Glow) ---
         function drawChart() {
             const parent = canvas.parentElement;
-            const w = parent.clientWidth;
-            const h = parent.clientHeight;
+            const rect = parent.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
             if(w === 0 || h === 0) return;
 
-            canvas.width = w;
-            canvas.height = h;
+            // Фикс качества (Retina)
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            ctx.scale(dpr, dpr);
 
-            // Отступы: справа для цифр, снизу для времени
-            const paddingRight = 45; 
+            // Отступы
+            const paddingRight = 50; 
             const paddingBottom = 20;
-            const paddingTop = 10;
+            const paddingTop = 15;
             
             const chartW = w - paddingRight;
             const chartH = h - paddingTop - paddingBottom;
 
             ctx.clearRect(0, 0, w, h);
 
-            // Находим мин/макс
             const values = balanceHistory.map(d => d.value);
-            const maxVal = Math.max(...values);
-            const minVal = Math.min(...values);
+            // Берем минимум 90, чтобы график не прыгал слишком сильно, если баланс 100
+            const maxVal = Math.max(...values, 110); 
+            const minVal = Math.min(...values, 90);
             const range = maxVal - minVal || 1; 
 
             const color = isCurrentWin ? '#00ff88' : '#ff4444';
-            const gradientStart = isCurrentWin ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)';
+            const gradientStart = isCurrentWin ? 'rgba(0, 255, 136, 0.25)' : 'rgba(255, 68, 68, 0.25)';
             const gradientEnd = 'rgba(0, 0, 0, 0)';
 
-            // 1. Рисуем сетку и цифры по оси Y
-            ctx.font = '10px Arial';
-            ctx.fillStyle = '#888888';
+            // 1. Сетка и ось Y
+            ctx.font = '10px "SF Pro Display", -apple-system, sans-serif';
+            ctx.fillStyle = '#666666';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
 
@@ -231,23 +235,35 @@
                 const val = minVal + (range * (i/4));
                 const y = paddingTop + chartH - ((val - minVal) / range) * chartH;
                 
-                // Линия сетки
                 ctx.beginPath();
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
                 ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]); // Пунктирная сетка
                 ctx.moveTo(0, y);
                 ctx.lineTo(chartW, y);
                 ctx.stroke();
+                ctx.setLineDash([]); // Сброс
 
-                // Цифра
                 ctx.fillText('$' + val.toFixed(0), w, y);
             }
 
-            // 2. Рисуем линию графика
+            // 2. Линия стартового депозита (Базлайн $100)
+            const baseY = paddingTop + chartH - ((100 - minVal) / range) * chartH;
             ctx.beginPath();
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(0, baseY);
+            ctx.lineTo(chartW, baseY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 3. Рисуем линию с неоновым свечением
+            ctx.beginPath();
+            ctx.lineWidth = 2.5;
             ctx.strokeStyle = color;
             ctx.lineJoin = 'round';
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 12; // Сила свечения
 
             const stepX = chartW / (balanceHistory.length - 1); 
 
@@ -262,8 +278,11 @@
                 }
             }
             ctx.stroke(); 
+            
+            // Убираем тень для заливки
+            ctx.shadowBlur = 0;
 
-            // 3. Градиент под линией
+            // 4. Градиент
             ctx.lineTo(chartW, h - paddingBottom);
             ctx.lineTo(0, h - paddingBottom);
             ctx.closePath();
@@ -274,44 +293,64 @@
             ctx.fillStyle = gradient;
             ctx.fill();
 
-            // 4. Время по оси X (снизу)
-            ctx.fillStyle = '#888888';
+            // 5. Ось X (время)
+            ctx.fillStyle = '#666666';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            for(let i=0; i<balanceHistory.length; i+=5) { // Каждую 5-ю точку
+            for(let i=0; i<balanceHistory.length; i+=4) { 
                 const x = i * stepX;
-                if(x > 20 && x < chartW - 20) {
+                if(x > 25 && x < chartW - 25) {
                     const timeStr = new Date(balanceHistory[i].time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                    ctx.fillText(timeStr, x, h - paddingBottom + 5);
+                    ctx.fillText(timeStr, x, h - paddingBottom + 6);
                 }
             }
 
-            // 5. Плашка с текущим балансом (Current Price Tag)
+            // 6. Current Price Tag
             const lastPoint = balanceHistory[balanceHistory.length - 1];
             const lastX = chartW;
             const lastY = paddingTop + chartH - ((lastPoint.value - minVal) / range) * chartH;
 
-            // Рисуем точку на конце линии
+            // Свечение точки
             ctx.beginPath();
-            ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+            ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
             ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Плашка
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            // Рисуем прямоугольник со скругленными углами слева
+            ctx.roundRect(chartW + 2, lastY - 9, paddingRight - 2, 18, [4, 0, 0, 4]);
             ctx.fill();
 
-            // Рисуем плашку
-            ctx.fillStyle = color;
-            ctx.fillRect(chartW, lastY - 8, paddingRight, 16);
-
-            // Текст в плашке
-            ctx.fillStyle = '#000000'; // Черный текст для контраста
-            ctx.font = 'bold 10px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 10px "SF Pro Display", -apple-system, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('$' + lastPoint.value.toFixed(2), chartW + paddingRight/2, lastY);
+            ctx.fillText('$' + lastPoint.value.toFixed(2), chartW + paddingRight/2 + 1, lastY);
+        }
+
+        // Поддержка roundRect для старых браузеров
+        if(!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x+r, y);
+                this.arcTo(x+w, y,   x+w, y+h, r);
+                this.arcTo(x+w, y+h, x,   y+h, r);
+                this.arcTo(x,   y+h, x,   y,   r);
+                this.arcTo(x,   y,   x+w, y,   r);
+                this.closePath();
+                return this;
+            }
         }
 
         setTimeout(drawChart, 100);
         window.addEventListener('resize', drawChart);
-
 
         // --- ЛОГИКА ---
         function addChatMessage(agent, text) {
@@ -362,7 +401,6 @@
 
             currentBalance += change;
 
-            // Добавляем точку в историю (значение и время)
             balanceHistory.push({ value: currentBalance, time: Date.now() });
             if (balanceHistory.length > 25) {
                 balanceHistory.shift(); 
