@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V21</title>
+    <title>HyperGrok Terminal V22</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -51,9 +51,17 @@
             cursor: pointer; transition: border 0.2s;
         }
         .saved-account-card:hover { border-color: var(--accent-green); }
-        .saved-acc-left { display: flex; flex-direction: column; gap: 4px; }
-        .saved-acc-addr { font-weight: bold; font-size: 14px; color: var(--text-main); }
+        .saved-acc-left { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .saved-acc-addr { font-weight: bold; font-size: 14px; color: var(--text-main); word-break: break-all; }
         .saved-acc-bal { font-size: 12px; color: var(--accent-green); }
+        
+        /* Кнопка удаления */
+        .btn-delete-acc { 
+            background: transparent; border: none; color: var(--accent-red); font-size: 20px; 
+            cursor: pointer; padding: 10px; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .btn-delete-acc:active { transform: scale(0.8); }
         
         .btn-add-new { 
             width: 100%; max-width: 350px; background: transparent; border: 1px dashed var(--border-color); 
@@ -368,6 +376,7 @@
             savedAccounts.forEach((acc, index) => {
                 const card = document.createElement('div');
                 card.className = 'saved-account-card';
+                // При клике на карточку - запускаем сессию
                 card.onclick = () => startSession(acc.address, acc.balance);
                 
                 card.innerHTML = `
@@ -375,10 +384,25 @@
                         <div class="saved-acc-addr">${acc.address}</div>
                         <div class="saved-acc-bal">$${acc.balance.toFixed(2)}</div>
                     </div>
-                    <div style="color:var(--accent-green); font-weight:bold;">➔</div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <!-- Кнопка удаления (с event.stopPropagation, чтобы не запускалась торговля) -->
+                        <button class="btn-delete-acc" onclick="deleteAccount(event, ${index})">🗑</button>
+                        <div style="color:var(--accent-green); font-weight:bold;">➔</div>
+                    </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // Функция удаления аккаунта
+        function deleteAccount(event, index) {
+            event.stopPropagation(); // Останавливаем клик, чтобы не запустилась торговля
+            
+            if (confirm("Delete this account?")) {
+                savedAccounts.splice(index, 1); // Удаляем из массива
+                localStorage.setItem('grok_accounts', JSON.stringify(savedAccounts)); // Сохраняем
+                renderAccounts(); // Перерисовываем список
+            }
         }
 
         // Показать/скрыть форму создания
@@ -525,7 +549,7 @@
             }
         }
 
-        // --- ОСТАЛЬНЫЕ ФУНКЦИИ (ГРАФИК, ТОРГОВЛЯ И Т.Д.) ---
+        // --- ОСТАЛЬНЫЕ ФУНКЦИИ ---
         function drawChart() {
             const parent = canvas.parentElement;
             const rect = parent.getBoundingClientRect();
