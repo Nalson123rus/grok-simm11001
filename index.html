@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HyperGrok Terminal Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем библиотеку графиков от TradingView -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         :root {
             --bg-color: #0d0e12;
@@ -18,7 +20,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; padding-bottom: 100px; overflow-x: hidden; font-size: 13px; }
         
-        /* Шапка */
         .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
         .logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 20px; }
         .header-text h1 { font-size: 16px; margin-bottom: 2px; }
@@ -27,31 +28,36 @@
 
         .grid { display: flex; flex-direction: column; gap: 12px; }
         
-        /* График */
-        .chart-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; height: 150px; position: relative; display: flex; align-items: flex-end; overflow: hidden; }
-        .chart-line { width: 100%; height: 30%; background: linear-gradient(180deg, rgba(0, 255, 136, 0.1) 0%, rgba(0,0,0,0) 100%); border-bottom: 2px solid var(--accent-green); transition: all 0.3s ease-out; }
-        .popup-trade { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 136, 0.2); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; font-size: 12px; z-index: 10; }
+        /* Контейнер для реального графика */
+        .chart-box { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 0; 
+            height: 180px; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        #tv-chart { width: 100%; height: 100%; }
+        
+        .popup-trade { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 136, 0.2); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; font-size: 12px; z-index: 10; pointer-events: none; backdrop-filter: blur(2px); }
         .popup-trade.show { opacity: 1; }
         .popup-trade.loss { background: rgba(255, 68, 68, 0.2); border-color: var(--accent-red); color: var(--accent-red); }
 
         .row { display: flex; gap: 12px; }
         .col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
         
-        /* Карточки */
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; }
         .card-title { color: var(--text-muted); font-size: 10px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; justify-content: space-between;}
         
-        /* The Rule */
         .rule-box { border-color: #ff4444; }
         .rule-box .rule-text { color: #ff4444; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
         .rule-box .rule-sub { color: var(--text-muted); font-size: 11px; }
 
-        /* Чат */
         .chat-box { height: 110px; overflow-y: hidden; display: flex; flex-direction: column; gap: 6px; }
         .chat-msg { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
         .chat-msg span { color: var(--text-main); font-weight: bold; }
         
-        /* Таблица */
         .positions-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .positions-table th { text-align: left; color: var(--text-muted); font-weight: normal; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); }
         .positions-table td { padding: 6px 0; border-bottom: 1px solid #222; }
@@ -59,19 +65,16 @@
         .pnl-pos { color: var(--accent-green); text-align: right;}
         .pnl-neg { color: var(--accent-red); text-align: right;}
 
-        /* Агенты */
         .agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
         .agent-mini { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; display: flex; align-items: center; gap: 8px; font-size: 11px; transition: all 0.3s; }
         .agent-mini .dot { width: 8px; height: 8px; border-radius: 50%; }
         .agent-mini.active { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(0,255,136,0.2); transform: scale(1.02); }
 
-        /* Нижнее меню */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0c; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 16px 12px; padding-bottom: max(16px, env(safe-area-inset-bottom)); font-size: 18px; color: var(--text-muted); align-items: center; gap: 10px; }
         .btn { background: var(--card-bg); color: white; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; flex: 1; cursor: pointer; text-align: center; }
         .btn-stop { background: rgba(255, 68, 68, 0.1); color: var(--accent-red); border-color: var(--accent-red); }
         .btn-start { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); border-color: var(--accent-green); }
 
-        /* Модальное окно */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; padding: 20px; }
         .modal.show { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
@@ -93,9 +96,10 @@
     </div>
 
     <div class="grid">
+        <!-- Контейнер для реального графика -->
         <div class="chart-box">
             <div class="popup-trade" id="popup">CLOSED +$210.00</div>
-            <div class="chart-line" id="chart-line"></div>
+            <div id="tv-chart"></div>
         </div>
 
         <div class="row">
@@ -141,7 +145,6 @@
         <button class="btn btn-start" style="background:transparent; border:none; color:var(--text-muted); flex:0.5;" onclick="showRecap()">📊 Итоги</button>
     </div>
 
-    <!-- Модальное окно итогов -->
     <div class="modal" id="recap-modal">
         <div class="modal-content">
             <h2>12h Session Recap</h2>
@@ -163,8 +166,8 @@
         const tg = window.Telegram.WebApp;
         if (tg) { tg.expand(); tg.setHeaderColor('#0d0e12'); }
 
+        // --- ЛОГИКА ---
         let currentBalance = 100.00;
-        let chartHeight = 10;
         let isRunning = true;
         let tradeCount = 0;
         let winCount = 0;
@@ -172,15 +175,59 @@
         let worstTrade = 0;
         let tradeInterval;
 
-        const chartEl = document.getElementById('chart-line');
         const popupEl = document.getElementById('popup');
         const chatBox = document.getElementById('chat-box');
         const targetText = document.getElementById('target-text');
         const controlBtn = document.getElementById('control-btn');
 
-        // Огромный список мемкоинов и токенов
         const tokens = ['WIF', 'BONK', 'POPCAT', 'MEW', 'JUP', 'RAY', 'JTO', 'PYTH', 'HYPE', 'ETH', 'SOL', 'BTC', 'BRICK', 'DEEP', 'GARY', 'CAT'];
-        
+
+        // --- НАСТРОЙКА ГРАФИКА (TradingView Lightweight Charts) ---
+        const chartContainer = document.getElementById('tv-chart');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: {
+                background: { type: 'solid', color: 'transparent' },
+                textColor: '#888888',
+            },
+            grid: {
+                vertLines: { color: 'rgba(42, 45, 54, 0.5)' },
+                horzLines: { color: 'rgba(42, 45, 54, 0.5)' },
+            },
+            rightPriceScale: { borderVisible: false },
+            timeScale: { borderVisible: false, timeVisible: true, secondsVisible: true },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        });
+
+        // Создаем линию графика (Area Series)
+        const areaSeries = chart.addAreaSeries({
+            lineColor: '#00ff88',
+            topColor: 'rgba(0, 255, 136, 0.4)',
+            bottomColor: 'rgba(0, 255, 136, 0.0)',
+            lineWidth: 2,
+        });
+
+        // Время для графика (симуляция)
+        let currentTime = Math.floor(Date.now() / 1000) - 1000;
+        let chartData = [];
+
+        // Генерируем стартовые данные, чтобы график уже был красивым
+        for (let i = 0; i < 50; i++) {
+            currentTime += 60; // Шаг 1 минута
+            let startValue = 100 + Math.sin(i / 5) * 2 + (Math.random() * 2 - 1);
+            chartData.push({ time: currentTime, value: startValue });
+        }
+        areaSeries.setData(chartData);
+
+        // Подстраиваем график под размер экрана
+        new ResizeObserver(entries => {
+            if (entries.length === 0 || entries[0].target !== chartContainer) { return; }
+            const newRect = entries[0].contentRect;
+            chart.applyOptions({ width: newRect.width, height: newRect.height });
+        }).observe(chartContainer);
+
+        // --- ФУНКЦИИ ---
         function addChatMessage(agent, text) {
             const div = document.createElement('div');
             div.className = 'chat-msg';
@@ -219,10 +266,7 @@
             const token = tokens[Math.floor(Math.random() * tokens.length)];
             const action = Math.random() > 0.5 ? 'LONG' : 'SHORT';
             
-            // Реалистичный винрейт около 75%
             const isWin = Math.random() > 0.25; 
-            
-            // Генерация прибыли/убытка (от $2 до $25)
             let change = parseFloat((Math.random() * 23 + 2).toFixed(2));
             if (!isWin) change = -change;
 
@@ -232,18 +276,28 @@
 
             currentBalance += change;
 
-            // Обновление графика
+            // --- ОБНОВЛЕНИЕ ГРАФИКА ---
+            currentTime += 60;
+            const newDataPoint = { time: currentTime, value: currentBalance };
+            areaSeries.update(newDataPoint); // Добавляем новую точку
+
+            // Меняем цвет графика (зеленый/красный) в зависимости от сделки
             if (isWin) {
-                chartHeight += Math.random() * 7;
-                chartEl.style.borderColor = 'var(--accent-green)';
-                chartEl.style.background = 'linear-gradient(180deg, rgba(0, 255, 136, 0.15) 0%, rgba(0,0,0,0) 100%)';
+                areaSeries.applyOptions({
+                    lineColor: '#00ff88',
+                    topColor: 'rgba(0, 255, 136, 0.4)',
+                    bottomColor: 'rgba(0, 255, 136, 0.0)'
+                });
             } else {
-                chartHeight -= Math.random() * 5;
-                chartEl.style.borderColor = 'var(--accent-red)';
-                chartEl.style.background = 'linear-gradient(180deg, rgba(255, 68, 68, 0.15) 0%, rgba(0,0,0,0) 100%)';
+                areaSeries.applyOptions({
+                    lineColor: '#ff4444',
+                    topColor: 'rgba(255, 68, 68, 0.4)',
+                    bottomColor: 'rgba(255, 68, 68, 0.0)'
+                });
             }
-            chartHeight = Math.max(5, Math.min(95, chartHeight));
-            chartEl.style.height = `${chartHeight}%`;
+
+            // Прокручиваем график вправо
+            chart.timeScale().scrollToRealTime();
 
             // Всплывашка
             popupEl.textContent = `CLOSED ${change > 0 ? '+' : ''}$${Math.abs(change).toFixed(2)}`;
@@ -255,21 +309,17 @@
             popupEl.classList.add('show');
             setTimeout(() => popupEl.classList.remove('show'), 1200);
 
-            // Обновляем цель
             targetText.textContent = `$${currentBalance.toFixed(2)} / $1,000`;
 
-            // Достижение цели
             if (currentBalance >= 1000) {
                 toggleBot();
                 showRecap();
             }
 
-            // Обновляем таблицу
             document.getElementById('pnl-1').textContent = `${Math.random()>0.5?'+':'-'}$${(Math.random()*30).toFixed(2)}`;
             document.getElementById('pnl-2').textContent = `${Math.random()>0.5?'+':'-'}$${(Math.random()*20).toFixed(2)}`;
             document.getElementById('pnl-3').textContent = `${Math.random()>0.5?'+':'-'}$${(Math.random()*15).toFixed(2)}`;
 
-            // Анимация агентов и логи
             flashAgent('cole');
             setTimeout(() => {
                 addChatMessage('COLE', `Scanning ${token} liquidity...`);
@@ -291,7 +341,7 @@
 
         function startTrading() {
             clearInterval(tradeInterval);
-            tradeInterval = setInterval(simulateTrade, 3500); // Сделка раз в 3.5 секунды
+            tradeInterval = setInterval(simulateTrade, 3500);
         }
 
         function showRecap() {
