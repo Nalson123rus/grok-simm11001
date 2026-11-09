@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HyperGrok Terminal Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Более надежная ссылка на библиотеку графиков -->
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         :root {
             --bg-color: #0d0e12;
@@ -28,6 +26,7 @@
 
         .grid { display: flex; flex-direction: column; gap: 12px; }
         
+        /* Контейнер для кастомного графика */
         .chart-box { 
             background: var(--card-bg); 
             border: 1px solid var(--border-color); 
@@ -37,8 +36,8 @@
             position: relative; 
             overflow: hidden; 
         }
-        /* Явно задаем размеры контейнеру */
-        #tv-chart { width: 100%; height: 100%; min-height: 180px; }
+        /* Наш холст для рисования */
+        #myChart { width: 100%; height: 100%; display: block; }
         
         .popup-trade { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 136, 0.2); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; font-size: 12px; z-index: 10; pointer-events: none; backdrop-filter: blur(2px); }
         .popup-trade.show { opacity: 1; }
@@ -96,9 +95,11 @@
     </div>
 
     <div class="grid">
+        <!-- Блок графика -->
         <div class="chart-box">
             <div class="popup-trade" id="popup">CLOSED +$210.00</div>
-            <div id="tv-chart"></div>
+            <!-- Наш холст для рисования -->
+            <canvas id="myChart"></canvas>
         </div>
 
         <div class="row">
@@ -165,6 +166,7 @@
         const tg = window.Telegram.WebApp;
         if (tg) { tg.expand(); tg.setHeaderColor('#0d0e12'); }
 
+        // --- ИНИЦИАЛИЗАЦИЯ ДАННЫХ ---
         let currentBalance = 100.00;
         let isRunning = true;
         let tradeCount = 0;
@@ -173,67 +175,89 @@
         let worstTrade = 0;
         let tradeInterval;
 
+        // Массив для хранения истории баланса (для графика)
+        let balanceHistory = [100, 102, 98, 105, 101, 110]; // Стартовые точки, чтобы график сразу был красивым
+        let isCurrentWin = true; // Для цвета графика
+
         const popupEl = document.getElementById('popup');
         const chatBox = document.getElementById('chat-box');
         const targetText = document.getElementById('target-text');
         const controlBtn = document.getElementById('control-btn');
+        const canvas = document.getElementById('myChart');
+        const ctx = canvas.getContext('2d');
 
         const tokens = ['WIF', 'BONK', 'POPCAT', 'MEW', 'JUP', 'RAY', 'JTO', 'PYTH', 'HYPE', 'ETH', 'SOL', 'BTC', 'BRICK', 'DEEP', 'GARY', 'CAT'];
 
-        // --- ИНИЦИАЛИЗАЦИЯ ГРАФИКА ---
-        let chart, areaSeries, currentTime = Math.floor(Date.now() / 1000) - 5000;
+        // --- ФУНКЦИЯ ОТРИСОВКИ ГРАФИКА ---
+        function drawChart() {
+            // Подстраиваем размер холста под экран телефона
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
 
-        function initChart() {
-            if (typeof LightweightCharts === 'undefined') {
-                console.error('Библиотека графиков не загрузилась');
-                return;
+            const w = canvas.width;
+            const h = canvas.height;
+            const padding = 20; // Отступы сверху/снизу
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Находим минимум и максимум для масштабирования
+            const maxVal = Math.max(...balanceHistory);
+            const minVal = Math.min(...balanceHistory);
+            const range = maxVal - minVal || 1; // Защита от деления на 0
+
+            // Настройки цвета (зеленый если последняя сделка в плюс, красный если в минус)
+            const color = isCurrentWin ? '#00ff88' : '#ff4444';
+            const gradientStart = isCurrentWin ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 68, 68, 0.2)';
+            const gradientEnd = 'rgba(0, 0, 0, 0)';
+
+            // Рисуем сетку (опционально)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for(let i=1; i<4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, h * (i/4));
+                ctx.lineTo(w, h * (i/4));
+                ctx.stroke();
             }
 
-            const chartContainer = document.getElementById('tv-chart');
+            // Начинаем рисовать линию
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = color;
+            ctx.lineJoin = 'round';
+
+            const stepX = w / (balanceHistory.length - 1); // Расстояние между точками по X
+
+            for (let i = 0; i < balanceHistory.length; i++) {
+                const x = i * stepX;
+                // Инвертируем Y, так как в Canvas (0,0) это левый верхний угол
+                const y = h - padding - ((balanceHistory[i] - minVal) / range) * (h - padding * 2); 
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke(); // Рисуем саму линию
+
+            // Заливка под линией (градиент)
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
             
-            chart = LightweightCharts.createChart(chartContainer, {
-                width: chartContainer.clientWidth,
-                height: chartContainer.clientHeight,
-                layout: {
-                    background: { type: 'solid', color: 'transparent' },
-                    textColor: '#888888',
-                },
-                grid: {
-                    vertLines: { color: 'rgba(42, 45, 54, 0.5)' },
-                    horzLines: { color: 'rgba(42, 45, 54, 0.5)' },
-                },
-                rightPriceScale: { borderVisible: false },
-                timeScale: { borderVisible: false, timeVisible: true, secondsVisible: true },
-                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            });
-
-            areaSeries = chart.addAreaSeries({
-                lineColor: '#00ff88',
-                topColor: 'rgba(0, 255, 136, 0.4)',
-                bottomColor: 'rgba(0, 255, 136, 0.0)',
-                lineWidth: 2,
-            });
-
-            // Начальные данные для графика
-            let chartData = [];
-            for (let i = 0; i < 30; i++) {
-                currentTime += 60;
-                let startValue = 100 + Math.sin(i / 5) * 2 + (Math.random() * 2 - 1);
-                chartData.push({ time: currentTime, value: startValue });
-            }
-            areaSeries.setData(chartData);
-
-            new ResizeObserver(entries => {
-                if (entries.length === 0 || entries[0].target !== chartContainer) { return; }
-                const newRect = entries[0].contentRect;
-                chart.applyOptions({ width: newRect.width, height: newRect.height });
-            }).observe(chartContainer);
+            const gradient = ctx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, gradientStart);
+            gradient.addColorStop(1, gradientEnd);
+            ctx.fillStyle = gradient;
+            ctx.fill();
         }
 
-        // Ждем полной загрузки страницы, чтобы контейнер получил размеры
-        window.addEventListener('load', () => {
-            setTimeout(initChart, 100); 
-        });
+        // Отрисовка при старте и при изменении размера окна
+        window.addEventListener('load', drawChart);
+        window.addEventListener('resize', drawChart);
+
 
         // --- ЛОГИКА ТОРГОВЛИ ---
         function addChatMessage(agent, text) {
@@ -266,14 +290,17 @@
         }
 
         function simulateTrade() {
-            if (!isRunning || !areaSeries) return;
+            if (!isRunning) return;
             
             tradeCount++;
             const token = tokens[Math.floor(Math.random() * tokens.length)];
             const action = Math.random() > 0.5 ? 'LONG' : 'SHORT';
             
+            // 75% побед
             const isWin = Math.random() > 0.25; 
-            let change = parseFloat((Math.random() * 23 + 2).toFixed(2));
+            isCurrentWin = isWin; 
+
+            let change = parseFloat((Math.random() * 15 + 2).toFixed(2));
             if (!isWin) change = -change;
 
             if (change > bestTrade) bestTrade = change;
@@ -282,17 +309,13 @@
 
             currentBalance += change;
 
-            // Обновление графика
-            currentTime += 60;
-            areaSeries.update({ time: currentTime, value: currentBalance });
-
-            if (isWin) {
-                areaSeries.applyOptions({ lineColor: '#00ff88', topColor: 'rgba(0, 255, 136, 0.4)', bottomColor: 'rgba(0, 255, 136, 0.0)' });
-            } else {
-                areaSeries.applyOptions({ lineColor: '#ff4444', topColor: 'rgba(255, 68, 68, 0.4)', bottomColor: 'rgba(255, 68, 68, 0.0)' });
+            // ДОБАВЛЯЕМ ТОЧКУ В ГРАФИК
+            balanceHistory.push(currentBalance);
+            // Ограничиваем историю 30 точками, чтобы график не сжимался слишком сильно
+            if (balanceHistory.length > 30) {
+                balanceHistory.shift(); 
             }
-
-            chart.timeScale().scrollToRealTime();
+            drawChart(); // Перерисовываем график!
 
             // Всплывашка
             popupEl.textContent = `CLOSED ${change > 0 ? '+' : ''}$${Math.abs(change).toFixed(2)}`;
@@ -315,6 +338,7 @@
             document.getElementById('pnl-2').textContent = `${Math.random()>0.5?'+':'-'}$${(Math.random()*20).toFixed(2)}`;
             document.getElementById('pnl-3').textContent = `${Math.random()>0.5?'+':'-'}$${(Math.random()*15).toFixed(2)}`;
 
+            // Анимация
             flashAgent('cole');
             setTimeout(() => {
                 addChatMessage('COLE', `Scanning ${token} liquidity...`);
@@ -360,11 +384,9 @@
             if(!isRunning) toggleBot();
         }
 
-        // Запуск (с небольшой задержкой, чтобы график успел создаться)
-        setTimeout(() => {
-            if (areaSeries) simulateTrade();
-            startTrading();
-        }, 1500);
+        // Запуск
+        setTimeout(simulateTrade, 1500);
+        startTrading();
     </script>
 </body>
 </html>
