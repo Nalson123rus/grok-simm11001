@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V11</title>
+    <title>HyperGrok Terminal V12</title>
     <!-- Подключаем шрифт Inter, как в Phantom -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -130,7 +130,7 @@
         /* --- ЭКРАН 4: PHANTOM WALLET (100% СТИЛЬ) --- */
         #screen-phantom { 
             background-color: var(--phantom-bg); 
-            padding: 0; /* Убираем отступы для полного погружения */
+            padding: 0; 
             font-family: 'Inter', sans-serif; 
             justify-content: flex-start; 
             height: 100vh;
@@ -139,7 +139,6 @@
         .phantom-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
         .phantom-back { color: var(--phantom-text); font-size: 14px; cursor: pointer; font-weight: 600; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
         
-        /* Градиентный аватар как в реальном Phantom */
         .phantom-account { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 24px; }
         .phantom-avatar { 
             width: 64px; height: 64px; border-radius: 50%; 
@@ -154,7 +153,6 @@
         .phantom-balance-label { color: var(--phantom-text); opacity: 0.5; font-size: 12px; margin-bottom: 8px; }
         .phantom-balance-val { font-size: 44px; font-weight: 700; color: var(--phantom-text); letter-spacing: -1px; }
         
-        /* Кнопки Receive / Send */
         .phantom-actions { display: flex; gap: 16px; padding: 0 20px; margin-bottom: 30px; }
         .phantom-btn-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .phantom-btn-square { 
@@ -170,7 +168,11 @@
         .phantom-tokens { background: var(--phantom-bg); padding: 0 20px; }
         .phantom-token-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .phantom-token-left { display: flex; align-items: center; gap: 14px; }
-        .phantom-token-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; }
+        
+        /* Иконки теперь без фона, так как SVG сам содержит круг */
+        .phantom-token-icon { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .phantom-token-icon svg { width: 100%; height: 100%; }
+        
         .phantom-token-name { font-size: 15px; font-weight: 600; color: var(--phantom-text); }
         .phantom-token-ticker { font-size: 12px; color: var(--phantom-text); opacity: 0.5; margin-top: 2px;}
         .phantom-token-right { text-align: right; }
@@ -312,19 +314,17 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 4: PHANTOM WALLET (ТОЧНАЯ КОПИЯ) -->
+    <!-- ЭКРАН 4: PHANTOM WALLET -->
     <div id="screen-phantom" class="screen">
         <div class="phantom-top-bar">
             <div class="phantom-back" onclick="backToDashboard()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                 Back
             </div>
-            <!-- Иконка настроек (заглушка) -->
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </div>
 
         <div class="phantom-account">
-            <!-- Градиентный аватар -->
             <div class="phantom-avatar"></div>
             <div class="phantom-name">Main Wallet</div>
             <div class="phantom-addr" id="phantom-addr">0x...0000</div>
@@ -335,7 +335,6 @@
             <div class="phantom-balance-val" id="phantom-total-balance">$0.00</div>
         </div>
 
-        <!-- Квадратные кнопки Receive / Send -->
         <div class="phantom-actions">
             <div class="phantom-btn-wrap">
                 <div class="phantom-btn-square">
@@ -363,13 +362,15 @@
             </div>
         </div>
 
-        <!-- Список токенов с правильными иконками -->
         <div class="phantom-tokens">
             <div class="phantom-token-row">
                 <div class="phantom-token-left">
-                    <!-- Официальная иконка Tether (USDT) -->
-                    <div class="phantom-token-icon" style="background: #26A17B;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 20.5c-4.694 0-8.5-3.806-8.5-8.5S7.306 3.5 12 3.5s8.5 3.806 8.5 8.5-3.806 8.5-8.5 8.5zm1.5-12.5v1.5h3v1.5h-3v3h-1.5v-3h-3v-1.5h3V8h1.5z"/></svg>
+                    <!-- Официальный логотип USDT -->
+                    <div class="phantom-token-icon">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="16" fill="#26A17B"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.922 13.747V11.727H23.003V8.577H9.075V11.727H14.156V13.747C10.164 13.93 7.167 14.65 7.167 15.514C7.167 16.378 10.164 17.098 14.156 17.281V24.837H17.922V17.281C21.906 17.098 24.895 16.378 24.895 15.514C24.895 14.65 21.906 13.93 17.922 13.747ZM17.922 16.857V16.855C17.863 16.859 17.556 16.877 16.968 16.877C16.499 16.877 16.133 16.864 16.031 16.857V16.859C12.538 16.706 9.933 16.128 9.933 15.436C9.933 14.744 12.538 14.166 16.031 14.012V16.014C16.134 16.02 16.507 16.04 17.003 16.04C17.55 16.04 17.854 16.016 17.922 16.01V14.012C21.409 14.166 24.007 14.744 24.007 15.436C24.007 16.128 21.409 16.706 17.922 16.857Z" fill="white"/>
+                        </svg>
                     </div>
                     <div>
                         <div class="phantom-token-name">Tether USD</div>
@@ -384,9 +385,31 @@
             
             <div class="phantom-token-row">
                 <div class="phantom-token-left">
-                    <!-- Иконка Solana -->
-                    <div class="phantom-token-icon" style="background: black; border: 1px solid #333;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4.886 16.932l2.097-2.156a.62.62 0 01.44-.18h13.13c.276 0 .415.332.22.524l-2.097 2.156a.62.62 0 01-.44.18H5.106c-.276 0-.415-.332-.22-.524zm0-10.528l2.097-2.156a.62.62 0 01.44-.18h13.13c.276 0 .415.332.22.524l-2.097 2.156a.62.62 0 01-.44.18H5.106c-.276 0-.415-.332-.22-.524zm0 5.264l2.097-2.156a.62.62 0 01.44-.18h13.13c.276 0 .415.332.22.524l-2.097 2.156a.62.62 0 01-.44.18H5.106c-.276 0-.415-.332-.22-.524z" fill="url(#sol-gradient)"/><defs><linearGradient id="sol-gradient" x1="4" y1="6" x2="20" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs></svg>
+                    <!-- Официальный логотип Solana (SOL) -->
+                    <div class="phantom-token-icon">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="16" fill="#141414"/>
+                            <path d="M9.5 19.5H24.2C24.4 19.5 24.5 19.7 24.4 19.9L21.9 22.5C21.8 22.6 21.6 22.7 21.4 22.7H6.8C6.6 22.7 6.5 22.5 6.6 22.3L9.1 19.7C9.2 19.6 9.4 19.5 9.5 19.5Z" fill="url(#paint0_linear)"/>
+                            <path d="M9.5 12.4H24.2C24.4 12.4 24.5 12.6 24.4 12.8L21.9 15.4C21.8 15.5 21.6 15.6 21.4 15.6H6.8C6.6 15.6 6.5 15.4 6.6 15.2L9.1 12.6C9.2 12.5 9.4 12.4 9.5 12.4Z" fill="url(#paint1_linear)"/>
+                            <path d="M9.5 5.3H24.2C24.4 5.3 24.5 5.5 24.4 5.7L21.9 8.3C21.8 8.4 21.6 8.5 21.4 8.5H6.8C6.6 8.5 6.5 8.3 6.6 8.1L9.1 5.5C9.2 5.4 9.4 5.3 9.5 5.3Z" fill="url(#paint2_linear)"/>
+                            <defs>
+                                <linearGradient id="paint0_linear" x1="6.5" y1="21.1" x2="24.5" y2="21.1" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#9945FF"/>
+                                    <stop offset="0.5" stop-color="#14F195"/>
+                                    <stop offset="1" stop-color="#19FB9B"/>
+                                </linearGradient>
+                                <linearGradient id="paint1_linear" x1="6.5" y1="14" x2="24.5" y2="14" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#9945FF"/>
+                                    <stop offset="0.5" stop-color="#14F195"/>
+                                    <stop offset="1" stop-color="#19FB9B"/>
+                                </linearGradient>
+                                <linearGradient id="paint2_linear" x1="6.5" y1="6.9" x2="24.5" y2="6.9" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#9945FF"/>
+                                    <stop offset="0.5" stop-color="#14F195"/>
+                                    <stop offset="1" stop-color="#19FB9B"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
                     </div>
                     <div>
                         <div class="phantom-token-name">Solana</div>
@@ -400,7 +423,6 @@
             </div>
         </div>
 
-        <!-- Нижнее меню навигации Phantom -->
         <div class="phantom-nav">
             <div class="phantom-nav-item active">
                 <svg class="phantom-nav-icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
