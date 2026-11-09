@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperGrok Terminal V7</title>
+    <title>HyperGrok Terminal V8</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -53,7 +53,6 @@
         .progress-fill { height: 100%; width: 0%; background: var(--accent-green); transition: width 0.3s; box-shadow: 0 0 10px var(--accent-green); }
 
         /* --- ЭКРАН 3: ДАШБОРД --- */
-        #screen-dashboard { display: none; } /* По умолчанию скрыт */
         .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
         .logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 20px; }
         .header-text h1 { font-size: 16px; margin-bottom: 2px; }
@@ -157,7 +156,8 @@
             <div class="logo">G</div>
             <div class="header-text">
                 <h1>Grok Bot ✦ HyperGrok</h1>
-                <p id="wallet-name">Wallet ➔ <span id="target-text">$100.00 / $1,000</span> in 6 days.</p>
+                <!-- Исправлено: отдельный span для имени кошелька, чтобы не ломать target-text -->
+                <p><span id="wallet-name">Wallet</span> ➔ <span id="target-text">$100.00 / $1,000</span> in 6 days.</p>
             </div>
         </div>
 
@@ -254,8 +254,8 @@
         ];
 
         async function startBootSequence(walletName) {
-            // Меняем имя кошелька в дашборде
-            document.getElementById('wallet-name').innerHTML = `${walletName} ➔ <span id="target-text">$100.00 / $1,000</span> in 6 days.`;
+            // Меняем имя кошелька в дашборде (теперь безопасно)
+            document.getElementById('wallet-name').textContent = walletName;
 
             // Переключаем экран
             screenSelect.classList.remove('active');
@@ -267,40 +267,37 @@
             for (let i = 0; i < bootMessages.length; i++) {
                 const msg = bootMessages[i];
                 
-                // Ждем
                 await new Promise(r => setTimeout(r, msg.time));
                 currentTime += msg.time;
 
-                // Обновляем прогресс-бар
                 const progress = Math.min((currentTime / totalTime) * 100, 100);
                 bootProgress.style.width = progress + '%';
 
-                // Добавляем строку в лог
                 const line = document.createElement('div');
                 line.className = 'boot-line';
                 line.innerHTML = `<span>${msg.text}</span>`;
                 bootLog.appendChild(line);
                 
-                // Автоскролл вниз
                 screenBoot.scrollTop = screenBoot.scrollHeight;
 
-                // Если дошли до конца
                 if (i === bootMessages.length - 1) {
                     await new Promise(r => setTimeout(r, 600));
+                    
                     screenBoot.classList.remove('active');
                     screenDashboard.classList.add('active');
                     
-                    // Инициализируем график и торговлю после открытия экрана
+                    // Инициализируем график ТОЛЬКО когда экран уже виден
                     setTimeout(() => {
                         drawChart();
                         simulateTrade();
                         startTrading();
+                        rotatePositions();
                     }, 100);
                 }
             }
         }
 
-        // --- ОСНОВНАЯ ЛОГИКА ТОРГОВЛИ (V6) ---
+        // --- ОСНОВНАЯ ЛОГИКА ТОРГОВЛИ ---
         let currentBalance = 100.00;
         let isRunning = true;
         let tradeCount = 0;
